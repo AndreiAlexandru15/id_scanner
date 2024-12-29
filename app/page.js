@@ -6,6 +6,7 @@ const Home = () => {
   const [image, setImage] = useState(null);
   const [extractedText, setExtractedText] = useState(""); // Stocăm textul complet extras
   const [isProcessing, setIsProcessing] = useState(false);
+  const [documentData, setDocumentData] = useState(null); // Stocăm datele extrase (CNP, serie, etc.)
 
   // Funcția pentru a încărca imaginea
   const handleImageChange = (e) => {
@@ -27,8 +28,26 @@ const Home = () => {
         logger: (info) => console.log(info),
       });
 
-      // Setăm textul complet extras
-      setExtractedText(result.data.text);
+      const text = result.data.text;
+      setExtractedText(text);
+
+      // Extragem CNP, seria, numărul și data de validitate folosind expresii regulate
+      const cnpRegex = /\b\d{13}\b/;
+      const serieRegex = /\b[A-Z]{2}\b/;
+      const numarRegex = /\b\d{6}\b/;
+      const dataRegex = /\b(\d{2}\.\d{2}\.\d{2})-(\d{2}\.\d{2}\.\d{2})\b/;
+
+      const cnpMatch = text.match(cnpRegex);
+      const serieMatch = text.match(serieRegex);
+      const numarMatch = text.match(numarRegex);
+      const dataMatch = text.match(dataRegex);
+
+      setDocumentData({
+        cnp: cnpMatch ? cnpMatch[0] : "N/A",
+        serie: serieMatch ? serieMatch[0] : "N/A",
+        numar: numarMatch ? numarMatch[0] : "N/A",
+        dataValiditate: dataMatch ? `${dataMatch[1]} - ${dataMatch[2]}` : "N/A",
+      });
     } catch (error) {
       console.error("Error processing image:", error);
     } finally {
@@ -66,6 +85,16 @@ const Home = () => {
         <div className="mt-6 bg-white p-4 rounded shadow-md max-w-md w-full">
           <h2 className="text-lg font-semibold">Extracted Text:</h2>
           <p className="mt-2 whitespace-pre-wrap">{extractedText}</p>
+        </div>
+      )}
+
+      {documentData && (
+        <div className="mt-6 bg-white p-4 rounded shadow-md max-w-md w-full">
+          <h2 className="text-lg font-semibold">Extracted Information:</h2>
+          <p><strong>CNP:</strong> {documentData.cnp}</p>
+          <p><strong>Serie:</strong> {documentData.serie}</p>
+          <p><strong>Număr:</strong> {documentData.numar}</p>
+          <p><strong>Data de validitate:</strong> {documentData.dataValiditate}</p>
         </div>
       )}
     </div>
