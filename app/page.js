@@ -21,7 +21,7 @@ const Home = () => {
     if (!image) return;
     setIsProcessing(true);
     try {
-      const result = await Tesseract.recognize(image, 'eng', {
+      const result = await Tesseract.recognize(image, 'ron', {
         logger: (info) => console.log(info),
       });
       setText(result.data.text);
@@ -37,7 +37,7 @@ const Home = () => {
   };
 
   const videoConstraints = {
-    facingMode: isBackCamera ? 'environment' : 'user', // Switch between 'environment' and 'user'
+    facingMode: isBackCamera ? 'environment' : 'user', 
   };
 
   return (
