@@ -1,4 +1,3 @@
-"use client"
 import React, { useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import Tesseract from 'tesseract.js';
@@ -8,6 +7,7 @@ const Home = () => {
   const [image, setImage] = useState(null);
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isBackCamera, setIsBackCamera] = useState(true); // State to track camera direction
 
   const captureImage = () => {
     if (webcamRef.current) {
@@ -31,6 +31,14 @@ const Home = () => {
     }
   };
 
+  const toggleCamera = () => {
+    setIsBackCamera((prevState) => !prevState); // Toggle the camera state
+  };
+
+  const videoConstraints = {
+    facingMode: isBackCamera ? 'environment' : 'user', // Switch between 'environment' and 'user'
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">ID Scanner</h1>
@@ -40,14 +48,23 @@ const Home = () => {
             audio={false}
             ref={webcamRef}
             screenshotFormat="image/jpeg"
+            videoConstraints={videoConstraints}
             className="w-full max-w-md rounded-lg shadow-lg"
           />
-          <button
-            onClick={captureImage}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Capture Image
-          </button>
+          <div className="mt-4 flex gap-4">
+            <button
+              onClick={captureImage}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Capture Image
+            </button>
+            <button
+              onClick={toggleCamera}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            >
+              Switch Camera
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center">
