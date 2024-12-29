@@ -1,104 +1,67 @@
-"use client";
-import React, { useState } from "react";
-import Tesseract from "tesseract.js";
+"use client"
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const Home = () => {
+export default function Home() {
   const [image, setImage] = useState(null);
-  const [extractedText, setExtractedText] = useState(""); // Stocăm textul complet extras
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [documentData, setDocumentData] = useState(null); // Stocăm datele extrase (CNP, serie, etc.)
+  const [response, setResponse] = useState(null);
+  const [cnp, setCnp] = useState('');
+  const [series, setSeries] = useState('');
 
-  // Funcția pentru a încărca imaginea
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setImage(imageUrl);
-    }
+    setImage(e.target.files[0]);
   };
 
-  // Funcția pentru procesarea imaginii și extragerea textului
-  const processImage = async () => {
-    if (!image) return;
-    setIsProcessing(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('image', image);
 
     try {
-      // Procesăm imaginea folosind Tesseract
-      const result = await Tesseract.recognize(image, "ron", {
-        logger: (info) => console.log(info),
+      const res = await axios.post('http://localhost:5000/extract_cnp_and_series', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-
-      const text = result.data.text;
-      setExtractedText(text);
-
-      // Extragem CNP, seria, numărul și data de validitate folosind expresii regulate
-      const cnpRegex = /\b\d{13}\b/;
-      const serieRegex = /\b[A-Z]{2}\b/;
-      const numarRegex = /\b\d{6}\b/;
-      const dataRegex = /\b(\d{2}\.\d{2}\.\d{2})-(\d{2}\.\d{2}\.\d{2})\b/;
-
-      const cnpMatch = text.match(cnpRegex);
-      const serieMatch = text.match(serieRegex);
-      const numarMatch = text.match(numarRegex);
-      const dataMatch = text.match(dataRegex);
-
-      setDocumentData({
-        cnp: cnpMatch ? cnpMatch[0] : "N/A",
-        serie: serieMatch ? serieMatch[0] : "N/A",
-        numar: numarMatch ? numarMatch[0] : "N/A",
-        dataValiditate: dataMatch ? `${dataMatch[1]} - ${dataMatch[2]}` : "N/A",
-      });
+      setResponse(res.data);  // Store the API response
     } catch (error) {
-      console.error("Error processing image:", error);
-    } finally {
-      setIsProcessing(false);
+      console.error('Error uploading image:', error);
     }
   };
 
+  useEffect(() => {
+    if (response) {
+      setCnp(response.cnp);
+      setSeries(response.series);
+    }
+  }, [response]);  // Runs whenever 'response' changes
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">ID Scanner</h1>
-
-      {/* Input pentru a încărca imaginea */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleImageChange}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mb-4"
-      />
-
-      {image && (
-        <div className="flex flex-col items-center">
-          <img src={image} alt="Uploaded" className="w-full max-w-md rounded-lg shadow-lg" />
-
-          <button
-            onClick={processImage}
-            className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-            disabled={isProcessing}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">Upload Document</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input 
+            type="file" 
+            accept="image/*" 
+            capture="environment" 
+            onChange={handleImageChange} 
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <button 
+            type="submit" 
+            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            {isProcessing ? "Processing..." : "Process Image"}
+            Submit
           </button>
-        </div>
-      )}
-
-      {extractedText && (
-        <div className="mt-6 bg-white p-4 rounded shadow-md max-w-md w-full">
-          <h2 className="text-lg font-semibold">Extracted Text:</h2>
-          <p className="mt-2 whitespace-pre-wrap">{extractedText}</p>
-        </div>
-      )}
-
-      {documentData && (
-        <div className="mt-6 bg-white p-4 rounded shadow-md max-w-md w-full">
-          <h2 className="text-lg font-semibold">Extracted Information:</h2>
-          <p><strong>CNP:</strong> {documentData.cnp}</p>
-          <p><strong>Serie:</strong> {documentData.serie}</p>
-          <p><strong>Număr:</strong> {documentData.numar}</p>
-          <p><strong>Data de validitate:</strong> {documentData.dataValiditate}</p>
-        </div>
-      )}
+        </form>
+        {cnp && series && (
+          <div className="mt-6">
+            <p><strong>CNP:</strong> {cnp}</p>
+            <p><strong>Series:</strong> {series}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
-
-export default Home;
+}
