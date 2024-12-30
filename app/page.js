@@ -1,67 +1,102 @@
 "use client"
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import SignatureInput from '@/components/ui/signature-input'
+import {
+  useRef
+} from "react"
 
-export default function Home() {
-  const [image, setImage] = useState(null);
-  const [response, setResponse] = useState(null);
-  const [cnp, setCnp] = useState('');
-  const [series, setSeries] = useState('');
-
-  const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('image', image);
-
-    try {
-      const res = await axios.post('http://localhost:5000/extract_cnp_and_series', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setResponse(res.data);  // Store the API response
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (response) {
-      setCnp(response.cnp);
-      setSeries(response.series);
-    }
-  }, [response]);  // Runs whenever 'response' changes
-
+export default function DialogDemo() {
+  const canvasRef = useRef(null)
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Upload Document</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input 
-            type="file" 
-            accept="image/*" 
-            capture="environment" 
-            onChange={handleImageChange} 
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-          />
-          <button 
-            type="submit" 
-            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            Submit
-          </button>
-        </form>
-        {cnp && series && (
-          <div className="mt-6">
-            <p><strong>CNP:</strong> {cnp}</p>
-            <p><strong>Series:</strong> {series}</p>
+    <div className="flex items-center justify-center h-screen">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="bg-black text-white">Intra in cont</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-border"
+              aria-hidden="true"
+            >
+              <svg
+                className="stroke-zinc-800 dark:stroke-zinc-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 32 32"
+                aria-hidden="true"
+              >
+                <circle cx="16" cy="16" r="12" fill="none" strokeWidth="8" />
+              </svg>
+            </div>
+            <DialogHeader>
+              <DialogTitle className="sm:text-center">Welcome back</DialogTitle>
+              <DialogDescription className="sm:text-center">
+                Enter your credentials to login to your account.
+              </DialogDescription>
+            </DialogHeader>
           </div>
-        )}
-      </div>
+
+          <form className="space-y-5">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cnm-input">
+                  CNM <span className="text-destructive">*</span>
+                </Label>
+                <Input id="cnm-input" placeholder="CNM" type="text" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="serie-input">
+                  Serie <span className="text-destructive">*</span>
+                </Label>
+                <Input id="serie-input" placeholder="Serie" type="text" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="numar-input">
+                  Număr <span className="text-destructive">*</span>
+                </Label>
+                <Input id="numar-input" placeholder="Număr" type="text" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nume-input">
+                  Nume <span className="text-destructive">*</span>
+                </Label>
+                <Input id="nume-input" placeholder="Nume" type="text" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prenume-input">
+                  Prenume <span className="text-destructive">*</span>
+                </Label>
+                <Input id="prenume-input" placeholder="Prenume" type="text" required />
+              </div>
+              <div className="space-y-2">
+      <Label htmlFor="input-30">File input</Label>
+      <Input id="input-30" className="p-0 pe-3 file:me-3 file:border-0 file:border-e" type="file" />
+    </div>
+              <SignatureInput
+                canvasRef={canvasRef}
+                onSignatureChange={(signature) => { console.log(signature) }}
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Submit
+            </Button>
+          </form>
+
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
